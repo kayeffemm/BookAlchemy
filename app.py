@@ -1,8 +1,8 @@
 from flask import Flask, render_template, request
 from flask_sqlalchemy import SQLAlchemy
 from data_models import db, Author, Book
-import os
 from datetime import datetime
+import os, requests
 
 directory_library = os.path.abspath(os.path.dirname(__file__))
 app = Flask(__name__)
@@ -77,6 +77,27 @@ def add_book():
 
     authors = Author.query.all()  # Fetch all authors to populate the dropdown
     return render_template('add_book.html', message=None, authors=authors)
+
+
+@app.route('/')
+def home():
+    """
+    Fetches all books from the database, queries Open Library API to get cover images
+    for each book, and renders the home page with books and their covers.
+    """
+    books = Book.query.all()  # Fetch all books from the Book table
+    for book in books:
+        # Query the Open Library API to get the cover image using the ISBN
+        clean_isbn = ''.join([char for char in book.isbn if char.isdigit()])
+        response = requests.get(f'https://covers.openlibrary.org/b/isbn/{clean_isbn}-L.jpg')
+
+        if response.status_code == 200:
+            book.cover_image_url = response.url  # Set the URL if the image is found
+        else:
+            book.cover_image_url = None  # If no image is found, set to None
+
+    return render_template('home.html', books=books)
+
 
 
 """with app.app_context():
