@@ -85,7 +85,16 @@ def home():
     Fetches all books from the database, queries Open Library API to get cover images
     for each book, and renders the home page with books and their covers.
     """
-    books = Book.query.all()  # Fetch all books from the Book table
+    sort_by = request.args.get('sort_by', 'title')  # Default to sorting by title
+
+    if sort_by == 'author':
+        # Sort by author name (using join to access the related Author table)
+        books = Book.query.join(Author).order_by(Author.name).all()
+    else:
+        # Sort by title
+        books = Book.query.order_by(Book.title).all()
+
+
     for book in books:
         # Query the Open Library API to get the cover image using the ISBN
         clean_isbn = ''.join([char for char in book.isbn if char.isdigit()])
