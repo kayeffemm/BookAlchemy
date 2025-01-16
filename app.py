@@ -1,12 +1,11 @@
-from flask import Flask, render_template, request
-from flask_sqlalchemy import SQLAlchemy
+from flask import Flask, render_template, request, redirect, url_for, flash
 from data_models import db, Author, Book
 from datetime import datetime
 import os, requests
 
 directory_library = os.path.abspath(os.path.dirname(__file__))
 app = Flask(__name__)
-
+app.config['SECRET_KEY'] = os.urandom(24)
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(directory_library, "data", "library.sqlite")}'
 db.init_app(app)
 
@@ -114,6 +113,33 @@ def home():
 
     return render_template('home.html', books=books)
 
+
+@app.route('/book/<int:book_id>/delete', methods=['POST'])
+def delete_book(book_id):
+    """
+    Deletes a specific book from the database and the associated author if they have no other books.
+    Redirects the user back to the homepage with a success message.
+    """
+    book = Book.query.get_or_404(book_id)
+    author = book.author
+
+    try:
+        # Delete the book from the database
+        db.session.delete(book)
+
+        # Check if the author has any other books in the library
+        if not author.books:
+            # If the author has no other books, delete the author
+            db.session.delete(author)
+
+        db.session.commit()
+        flash('Book deleted successfully!', 'success')
+        return redirect(url_for('home'))
+
+    except Exception as e:
+        flash('Error deleting book: ' + str(e), 'error')
+        db.session.rollback()
+        return redirect(url_for('home'))
 
 
 """with app.app_context():
