@@ -85,14 +85,21 @@ def home():
     Fetches all books from the database, queries Open Library API to get cover images
     for each book, and renders the home page with books and their covers.
     """
+    search_query = request.args.get('search_query', '')
     sort_by = request.args.get('sort_by', 'title')  # Default to sorting by title
 
-    if sort_by == 'author':
-        # Sort by author name (using join to access the related Author table)
-        books = Book.query.join(Author).order_by(Author.name).all()
+    if search_query:
+        # Search books where title or author's name matches the search query
+        books = Book.query.join(Author).filter(
+            (Book.title.ilike(f'%{search_query}%')) |
+            (Author.name.ilike(f'%{search_query}%'))
+        ).all()
     else:
-        # Sort by title
-        books = Book.query.order_by(Book.title).all()
+        # Sort books by title or author name
+        if sort_by == 'author':
+            books = Book.query.join(Author).order_by(Author.name).all()
+        else:
+            books = Book.query.order_by(Book.title).all()
 
 
     for book in books:
@@ -101,9 +108,9 @@ def home():
         response = requests.get(f'https://covers.openlibrary.org/b/isbn/{clean_isbn}-L.jpg')
 
         if response.status_code == 200:
-            book.cover_image_url = response.url  # Set the URL if the image is found
+            book.cover_image_url = response.url
         else:
-            book.cover_image_url = None  # If no image is found, set to None
+            book.cover_image_url = None
 
     return render_template('home.html', books=books)
 

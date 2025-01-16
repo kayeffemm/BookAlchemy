@@ -19,6 +19,13 @@
       <input type="submit" value="Sort">
     </form>
 
+        <!-- Search Form -->
+    <form action="/" method="GET">
+      <label for="search_query">Search for a book:</label>
+      <input type="text" id="search_query" name="search_query" placeholder="Enter title or author" />
+      <input type="submit" value="Search">
+    </form>
+
     {% if books %}
       {% for book in books %}
         <div>
