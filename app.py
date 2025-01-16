@@ -48,5 +48,36 @@ def add_author():
     return render_template('add_author.html', message=None)
 
 
+@app.route('/add_book', methods=['GET', 'POST'])
+def add_book():
+    """
+    Handles both GET and POST requests for adding a new book.
+
+    GET: Renders the form to add a book with a dropdown to select an author.
+    POST: Processes the form data, creates a new Book record in the database,
+          and displays a success or error message.
+    """
+    if request.method == 'POST':
+        title = request.form['title']
+        isbn = request.form['isbn']
+        publication_year = request.form['publication_year']
+        author_id = request.form['author']  # Get the selected author ID
+
+        new_book = Book(title=title, isbn=isbn, publication_year=publication_year, author_id=author_id)
+
+        try:
+            db.session.add(new_book)
+            db.session.commit()
+            message = "Book added successfully!"
+        except Exception as e:
+            db.session.rollback()
+            message = f"Error adding book: {str(e)}"
+
+        return render_template('add_book.html', message=message, authors=Author.query.all())
+
+    authors = Author.query.all()  # Fetch all authors to populate the dropdown
+    return render_template('add_book.html', message=None, authors=authors)
+
+
 """with app.app_context():
     db.create_all()"""
