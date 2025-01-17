@@ -30,8 +30,8 @@
       {% for book in books %}
         <div>
           <h3>{{ book.title }} (ISBN: {{ book.isbn }})</h3>
-          {% if book.cover_image_url %}
-            <img src="{{ book.cover_image_url }}" alt="Cover image for {{ book.title }}" width="100">
+          {% if book.clean_isbn %}
+            <img src="https://covers.openlibrary.org/b/isbn/{{ book.clean_isbn }}-L.jpg" alt="Cover image for {{ book.title }}" width="100">
           {% else %}
             <p>No cover image available.</p>
           {% endif %}

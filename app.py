@@ -100,16 +100,8 @@ def home():
         else:
             books = Book.query.order_by(Book.title).all()
 
-
     for book in books:
-        # Query the Open Library API to get the cover image using the ISBN
-        clean_isbn = ''.join([char for char in book.isbn if char.isdigit()])
-        response = requests.get(f'https://covers.openlibrary.org/b/isbn/{clean_isbn}-L.jpg')
-
-        if response.status_code == 200:
-            book.cover_image_url = response.url
-        else:
-            book.cover_image_url = None
+        book.clean_isbn = ''.join([char for char in book.isbn if char.isdigit()])
 
     return render_template('home.html', books=books)
 
@@ -144,3 +136,7 @@ def delete_book(book_id):
 
 """with app.app_context():
     db.create_all()"""
+
+
+if __name__ == '__main__':
+    app.run(host="0.0.0.0", port=5002)
